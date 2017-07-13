@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# sqlalchemy: table만들때 쓰는 것들
-import settings
 import sqlalchemy
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 from sqlalchemy.ext.declarative import declarative_base
+
+# sqlalchemy: table만들때 쓰는 것들
+from Crawling import settings
+
 Base = declarative_base()
 # sqlalchemy data넣을 때 쓰는것들
 from sqlalchemy.orm import sessionmaker
