@@ -82,7 +82,7 @@ def crawling(interval=1):
             team_key_list = cast_json['registry']['team'].keys()
             team_list = []
             for j in team_key_list:
-                if 'season' in cast_json['registry']['team'][j].keys():
+                if 'season' in cast_json['registry2']['team'][j].keys():
                     team_list.append(j)
 
 datalist = []
@@ -93,3 +93,5 @@ for i in range(len(team_list)):
     session = Session()
     session.add_all(datalist)  # list로 한 번에 넣기
     session.commit()
+
+tabacd = 0
