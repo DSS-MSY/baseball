@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import sys
 import datetime as dt
 import time
 import urllib3
@@ -93,3 +93,4 @@ for i in range(len(team_list)):
     session = Session()
     session.add_all(datalist)  # list로 한 번에 넣기
     session.commit()
+test
