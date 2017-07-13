@@ -20,6 +20,9 @@ interval = int(interval)
 # functions
 ##########################
 
+def asdfasdfasdf():
+    return 0
+
 
 def date_count(interval=1):
     date_list = []
