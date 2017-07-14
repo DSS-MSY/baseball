@@ -83,20 +83,13 @@ class Team_Season(Base):
     f_name = Column(String)
 
 
-class Player(Base):
-    # table name
-    __tablename__ = 'player'
-    # table column
-    player_id = Column(Integer, primary_key=True)
-    tcode = Column(String, ForeignKey('team.tcode'))
-
-
 class Player_Profile(Base):
     # table name
     __tablename__ = 'player_profile'
     # table column
     profile_id = Column(Integer, primary_key=True)
-    player_id = Column(Integer, ForeignKey('player.player_id'))
+    tcode = Column(String, ForeignKey('team.tcode'))
+    player_id = Column(Integer)
     dates = Column(DateTime)
     backnum = Column(Integer)
     bat = Column(String)
