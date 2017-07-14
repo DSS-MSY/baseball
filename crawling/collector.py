@@ -20,6 +20,7 @@ interval = int(interval)
 # functions
 ##########################
 
+
 def asdfasdfasdf():
     return 0
 
@@ -81,12 +82,20 @@ def crawling(interval=1):
         # Inputting Data to Database
         ##########################
 
+
         for cast_json in cast_json_list:
             team_key_list = cast_json['registry']['team'].keys()
             team_list = []
             for j in team_key_list:
-                if 'season' in cast_json['registry2']['team'][j].keys():
+                if 'season' in cast_json['registry']['team'][j].keys():
                     team_list.append(j)
+
+
+        for cast_json in cast_json_list:
+
+
+
+
 
 datalist = []
 for i in range(len(team_list)):
