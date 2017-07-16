@@ -1,8 +1,8 @@
 #config settings
-DB_TYPE = "postgresql://"
-DB_USER = "postgres"
+DB_TYPE = ""
+DB_USER = ""
 DB_PASSWORD = ""
 DB_URL = ""
 DB_PORT = ""
-DB_NAME = "baseball"
+DB_NAME = ""
 QUERY_ECHO = False

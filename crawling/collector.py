@@ -28,6 +28,10 @@ def asdfasdfasdf():
     return 0
 
 
+def asdfasdfasdf():
+    return 0
+
+
 def date_count(interval=1):
     date_list = []
     for i in range(interval):
