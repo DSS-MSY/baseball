@@ -453,3 +453,4 @@ Session.configure(bind=engine)  # once engine is available
 session = Session()
 session.add_all(datalist)  # list로 한 번에 넣기
 session.commit()
+
