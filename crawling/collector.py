@@ -182,6 +182,8 @@ class Batter_Stats(Base):
 # Make table command
 Base.metadata.create_all(engine)
 
+
+
 import sys
 import datetime as dt
 import time
