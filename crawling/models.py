@@ -1,36 +1,16 @@
-# -*- coding: utf-8 -*-
-
-import sqlalchemy
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
-from sqlalchemy.ext.declarative import declarative_base
-
-# sqlalchemy: table만들때 쓰는 것들
-from Crawling import settings
-
-Base = declarative_base()
-# sqlalchemy data넣을 때 쓰는것들
-from sqlalchemy.orm import sessionmaker
-Session = sessionmaker()
-
-
-# ============================================
-#      Connect DB and Making Table
-# ============================================
-
-
-# port 매번 바뀌기 때문에 도커창에서 docker ps -a 친후에, port 번호 확인하기
-engine = sqlalchemy.create_engine(settings.DB_TYPE + settings.DB_USER + ":" + settings.DB_PASSWORD + "@" +
-                                  settings.DB_URL + ":" + settings.DB_PORT + "/" + settings.DB_NAME, echo=settings.QUERY_ECHO)
-
-# Making Table
+import datetime
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from .database import Base, engine
 
 
 class Livetext(Base):
-
-    # table name
+    # table name 지정하기:
     __tablename__ = 'livetext'
-    # table column
+    # table column 만들기:
     id = Column(Integer, primary_key=True)
+    home = Column(String)
+    away = Column(String)
     dates = Column(DateTime)
     inning = Column(String)
     btop = Column(String)
@@ -39,7 +19,6 @@ class Livetext(Base):
     pitcher = Column(String)
     text = Column(String)
     textstyle = Column(String)
-    tcode = Column(String)
 
 
 class Team(Base):
@@ -52,7 +31,7 @@ class Team(Base):
 class Team_Season(Base):
     # table name
     __tablename__ = 'team_season'
-    # table column
+    # table column: 25
     idx = Column(Integer, primary_key=True)
     tcode = Column(String, ForeignKey('team.tcode'))
     dates = Column(DateTime)
@@ -81,14 +60,15 @@ class Team_Season(Base):
     win = Column(Float)
     wra = Column(Float)
     f_name = Column(String)
+    region = Column(String)
+    stadium = Column(String)
 
 
 class Player_Profile(Base):
-    # table name
+    # table name:
     __tablename__ = 'player_profile'
-    # table column
+    # table column:
     profile_id = Column(Integer, primary_key=True)
-    tcode = Column(String, ForeignKey('team.tcode'))
     player_id = Column(Integer)
     dates = Column(DateTime)
     backnum = Column(Integer)
@@ -98,14 +78,16 @@ class Player_Profile(Base):
     position = Column(String)
     throw = Column(String)
     weight = Column(Integer)
+    tcode = Column(String, ForeignKey('team.tcode'))
 
 
 class Pitcher_Stats(Base):
-    # table name
+    # table name:
     __tablename__ = 'pitcher_stats'
-    # table column
+    # table column:
     pitcher_id = Column(Integer, primary_key=True)
-    player_id = Column(Integer, ForeignKey('player_profile.profile_id'))
+    dates = Column(DateTime)
+    player_id = Column(Integer)
     s_era = Column(Float)
     s_gyear = Column(Float)
     s_hit = Column(Float)
@@ -131,11 +113,12 @@ class Pitcher_Stats(Base):
 
 
 class Batter_Stats(Base):
-    # table name
+    # table name:
     __tablename__ = 'batter_stats'
-    # table column
+    # table column:
     batter_id = Column(Integer, primary_key=True)
-    player_id = Column(Integer, ForeignKey('player_profile.profile_id'))
+    dates = Column(DateTime)
+    player_id = Column(Integer)
     h_1 = Column(Float)
     h_2 = Column(Float)
     h_3 = Column(Float)
@@ -174,6 +157,3 @@ class Batter_Stats(Base):
     t_rbi = Column(Float)
     t_sb = Column(Float)
     t_so = Column(Float)
-
-# Make table command
-Base.metadata.create_all(engine)
