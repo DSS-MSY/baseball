@@ -1,6 +1,6 @@
 import urllib3
 import json
-from .settings import DevSettings
+from crawling.settings import DevSettings
 
 http = urllib3.PoolManager()
 
