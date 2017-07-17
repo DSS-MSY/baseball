@@ -5,7 +5,9 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 from sqlalchemy.ext.declarative import declarative_base
 
 # sqlalchemy: table만들때 쓰는 것들
-from crawling import settings
+# from crawling import settings
+import settings
+
 
 Base = declarative_base()
 # sqlalchemy data넣을 때 쓰는것들
@@ -29,6 +31,7 @@ class Livetext(Base):
     # table name 지정하기:
     __tablename__ = 'livetext'
     # table column 만들기:
+    idx = Column(Integer, primary_key=True)
     home = Column(String)
     away = Column(String)
     dates = Column(DateTime)
@@ -181,8 +184,6 @@ class Batter_Stats(Base):
 # Make table command
 Base.metadata.create_all(engine)
 
-
-
 import sys
 import datetime as dt
 import time
@@ -197,42 +198,65 @@ MATCH_URL = "http://score.sports.media.daum.net/planus/do/v2/api/sports_games.js
 CAST_URL = "http://data.cast.sports.media.daum.net/bs/kbo/"
 http = urllib3.PoolManager()
 
-# Interval control
-#interval = str(sys.argv)
-#interval = int(interval)
+# insert dates
+if len(sys.argv) > 2:
+    date1 = sys.argv[1]
+    date2 = sys.argv[2]
+    if date1 <= date2:
+        date1 = int(date1)
+        date2 = int(date2)
+    else:
+        print("ERROR: 2nd date must later than 1st date!")
+elif len(sys.argv) == 2:
+    date1 = sys.argv[1]
+    date2 = dt.datetime.now()
+    if dt.datetime.strptime(date1, "%Y%m%d") <= date2:
+        date1 = int(date1)
+        date2 = int(dt.datetime.strftime(date2, "%Y%m%d"))
+    else:
+        print("ERROR: 2nd date must later than 1st date!")
+else:
+    date1 = int(dt.datetime.strftime(dt.datetime.now() - dt.timedelta(days=1), "%Y%m%d"))
+    date2 = int(dt.datetime.strftime(dt.datetime.now(), "%Y%m%d"))
+
 ##########################
 # functions
 ##########################
-interval = 10
 
-def date_count(interval=1):
+
+def date_count(date1, date2):
+    """
+    date count function
+    :param date1: int type, date1 must earlier than date2
+    :param date2: int type, you have to input the day after that you want to calculate,
+    if you put nothing in date2, it will automatically insert dt.datetime.now()
+
+    ex) if date1 = 20170601, date2 = 20170630 return list is from June 1st to June 29th
+
+    :return: a list of dates from date1 to date2, inverse sorted
+    """
+
+    date1 = dt.datetime.strptime(str(date1), '%Y%m%d')
+    date2 = dt.datetime.strptime(str(date2), '%Y%m%d')
+    delta = (date2 - date1).days
     date_list = []
-    for i in range(interval):
-        date = dt.datetime.now() - dt.timedelta(days=(i+1))
+    for i in range(delta):
+        date = date2 - dt.timedelta(days=(i+1))
         date_list.append(date.strftime('%Y%m%d'))
     return date_list
 
 
-def crawling(interval=1):
-    """
-    Main Function to start crawling. Generally, there are 5 games for each interval.
-    If there is no input for interval, it will be 1. Just crawling for
-    :param interval:
-        how many days that you want to crawling. (default = 1)
-    :return:
-        returns are in your Database.
-    """
+def crawling(date1, date2):
     switch = True
     while switch:
         ##########################
-        # get cast_json files
+        # get cast_json
         ##########################
         # taking urls
         urls_list = []
-
-        for i in range(interval):
-            game_date = date_count(interval)[i]
-            urls_list.append(MATCH_URL + game_date)
+        date_list = date_count(date1, date2)
+        for i in date_list:
+            urls_list.append(MATCH_URL + i)
 
         # get highlight_json file
         high_json_list = []
@@ -250,14 +274,13 @@ def crawling(interval=1):
                         cast_id_list.append(i[j]['cp_game_id'])
 
         # get cast_urls_json from
-        cast_json_list =[]
+        cast_json_list = []
         for i in cast_id_list:
             cast_url = CAST_URL + i
             raw_cast_json = http.request('GET', cast_url)
             time.sleep(1)
             cast_json_list.append(json.loads(raw_cast_json.data.decode('utf-8')))
 
-        # get unique list
         array = pd.DataFrame(cast_id_list, columns=['cast_id'])
         array['date'] = array.cast_id.str[:8]
         array['idx'] = ~array.date.duplicated(keep='first')
@@ -269,10 +292,16 @@ def crawling(interval=1):
                     cast_json_list_unique.append(j)
         switch = False
 
-    return cast_id_list, cast_json_list, cast_id_list_unique, cast_json_list_unique
+        if cast_id_list:
+            print('Success!')
+        else:
+            print('there is no game')
+            exit()
+
+    return (cast_id_list, cast_json_list, cast_id_list_unique, cast_json_list_unique)
 
 # get cast_id & files
-cast_id_list, cast_json_list, cast_id_list_unique, cast_json_list_unique = crawling(interval)
+cast_id_list, cast_json_list, cast_id_list_unique, cast_json_list_unique = crawling(date1, date2)
 
 ##########################
 # Inputting Data to Database
@@ -289,8 +318,13 @@ datalist = []
 for i in team_list:
     datalist.append(Team(tcode=i))
 
+Session.configure(bind=engine)  # once engine is available
+session = Session()
+session.add_all(datalist)  # list로 한 번에 넣기
+session.commit()
+
 # team_season table
-# datalist = []
+datalist = []
 for cast_json in cast_json_list_unique:
     for i in team_list:
         f_name_ = cast_json['registry']['team'][i]['profile']['teamname1'] + ' ' + cast_json['registry']['team'][i]['profile']['teamname2'] if i != 'KT' else cast_json['registry']['team'][i]['profile']['teamname1'] + ' ' + 'wiz'
@@ -451,7 +485,6 @@ for cast_json in cast_json_list:
             textstyle=i['textstyle'],
             ))
 
-Session.configure(bind=engine)  # once engine is available
-session = Session()
 session.add_all(datalist)  # list로 한 번에 넣기
 session.commit()
+
