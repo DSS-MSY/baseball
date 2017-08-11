@@ -8,7 +8,7 @@ class Livetext(Base):
     # table name 지정하기:
     __tablename__ = 'livetext'
     # table column 만들기:
-    id = Column(Integer, primary_key=True)
+    idx = Column(Integer, primary_key=True)
     home = Column(String)
     away = Column(String)
     dates = Column(DateTime)
